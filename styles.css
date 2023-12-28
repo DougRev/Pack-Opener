@@ -1,0 +1,123 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 20px;
+}
+
+#home, #packOpening {
+    margin-top: 50px;
+}
+
+.card {
+    width: 100px;
+    height: 150px;
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 10px;
+    cursor: pointer;
+    background-size: cover;
+    transition: transform 0.3s ease-in-out;
+    transform-style: preserve-3d;
+    position: relative;
+    background-image: url('/Images/CardBack.png'); /* Default card back image */
+}
+
+.card::before, .card::after {
+    content: '';
+    position: absolute;
+    backface-visibility: hidden; /* Hide the back of the card when it is facing away */
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+}
+
+.card::after {
+    background-image: none; /* Start with no image */
+    transform: rotateY(180deg); /* Flip the back side */
+}
+
+.card.flipped {
+    transform: rotateY(180deg); /* Simple flip effect */
+}
+
+.card.flipped::after {
+    background-image: url('/Images/CardFront.png'); /* Replace with your card front image */
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Adjust if necessary */
+    border-radius: 5px;
+    position: relative;
+    text-align: center; /* Center the content */
+}
+
+.modal-content img {
+    max-width: 100%; /* Make sure the image is not bigger than the container */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 20px; /* Add some space between the image and the text */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.pack-style {
+    width: 150px;
+    height: 200px;
+    background-color: #E0CDA9;
+    border: 2px solid #B89B67;
+    border-radius: 10px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    /* Add a background image for the pack if you have one */
+    background-image: url('/Images/CardBox.png');
+    background-size: cover;
+}
+.hidden {
+    display: none;
+}
+
+.pack-option {
+    cursor: pointer;
+    /* Additional styling */
+}
+
+.pack-option img {
+    width: 100px; /* Adjust as needed */
+    height: auto;
+}

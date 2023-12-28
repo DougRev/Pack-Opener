@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Pack Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- User Authentication -->
+    <div id="userAuth">
+        <!-- Registration Form -->
+        <div id="registrationForm">
+            <input type="text" id="registerUsername" placeholder="Username">
+            <input type="password" id="registerPassword" placeholder="Password">
+            <button id="registerButton">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+            <button id="loginButton">Login</button>
+        </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home" class="hidden">
+        <button id="startGame">Open Packs</button>
+    </div>
+
+    <!-- Pack Selection Screen -->
+    <div id="packSelection" class="hidden">
+        <div class="pack-option" id="pack1">
+            <img src="/Images/CardBox.png" alt="Pack 1" />
+        </div>
+        <button id="backToHomeFromPackSelection">Back to Home</button>
+    </div>
+
+    <!-- Card Display Screen -->
+    <div id="packOpening" class="hidden">
+        <div class="card" id="card1"></div>
+        <div class="card" id="card2"></div>
+        <div class="card" id="card3"></div>
+        <div class="card" id="card4"></div>
+        <button id="backToPackSelection">Back to Packs</button>
+    </div>
+
+    <!-- Inventory Screen -->
+    <div id="inventoryContainer" class="hidden"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.5.1/gsap.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
