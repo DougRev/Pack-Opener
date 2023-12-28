@@ -1,0 +1,32 @@
+.template-manager {
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.template {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.template h2 {
+    margin-top: 0;
+}
+.skills-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .input-group label {
+    min-width: 120px;
+  }
+  

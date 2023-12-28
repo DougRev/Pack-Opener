@@ -1,0 +1,93 @@
+
+.card-manager-container {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.card-manager-form {
+    margin-bottom: 30px;
+}
+
+.card-manager-form label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.card-manager-form input,
+.card-manager-form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.card-manager-form button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.card-manager-form button:hover {
+    background-color: #0056b3;
+}
+
+.card-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+}
+
+.card-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.card-item:last-child {
+    border-bottom: none;
+}
+
+.card-item-buttons {
+    margin-top: 10px;
+}
+
+.card-item-buttons button {
+    margin-right: 10px;
+}
+
+.card-manager-form fieldset {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .card-manager-form legend {
+    padding: 0 5px;
+    width: auto;
+  }
+  
+  .input-group {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  
+  .input-group label {
+    flex: 0 0 120px;
+    margin-right: 10px;
+  }
+  
+  .input-group input,
+  .input-group select {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Continue styling other elements similarly */
+  

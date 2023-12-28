@@ -1,0 +1,27 @@
+[
+    {
+        "name": "Mystic Dragon",
+        "description": "A powerful dragon with mystical powers.",
+        "image": "/Images/dragon.png"
+    },
+    {
+        "name": "Ancient Wizard",
+        "description": "A wise wizard with ancient knowledge.",
+        "image": "/Images/wizard.png"
+    },
+    {
+        "name": "Elven Archer",
+        "description": "A nimble archer from the elven realms.",
+        "image": "/Images/elven-archer.png"
+    },
+    {
+        "name": "Dwarven Warrior",
+        "description": "A sturdy warrior from the dwarven mines.",
+        "image": "/Images/dwarven-warrior.png"
+    },
+    {
+        "name": "Shadow Assassin",
+        "description": "A stealthy assassin from the shadows.",
+        "image": "/Images/assasain.png"
+    }
+]
