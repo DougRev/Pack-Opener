@@ -70,15 +70,25 @@ router.post('/upload', upload.single('csv'), (req, res) => {
       .on('end', async () => {
         try {
           // Validate and insert data into the database
-          console.log(results);
           await Card.insertMany(results);
           res.json({ message: 'Cards uploaded successfully' });
-        } catch (error) {
-          console.error("Error during CSV insertion:", error);
-          res.status(500).json({ message: 'Error processing CSV data', error: error.message });
-        }
-      });
-  });
+         // Delete the file after processing
+         fs.unlink(req.file.path, err => {
+          if (err) {
+            console.error('Error deleting file:', req.file.path, err);
+          } else {
+            console.log('Successfully deleted file:', req.file.path);
+          }
+        });
+      } catch (error) {
+        // Handle error...
+        // Attempt to delete the file even if there is an error
+        fs.unlink(req.file.path, err => {
+          if (err) console.error('Error deleting file:', req.file.path, err);
+        });
+      }
+    });
+});
   
   function parseNumberOrDefault(value, defaultValue = 0) {
     const parsed = parseInt(value, 10);
