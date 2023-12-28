@@ -1,0 +1,4 @@
+name,team,position,shooting,dribbling,passing,onBallDefense,stealing,blocking,speed,acceleration,strength,verticalLeap,stamina,basketballIQ,intangibles,consistency,imageUrl,rarity
+LeBron James,Los Angeles Lakers,Small Forward,90,85,87,80,78,82,88,89,85,90,92,95,90,88,https://example.com/lebron.jpg,Epic
+Kevin Durant,Brooklyn Nets,Small Forward,92,88,90,82,80,84,85,86,82,88,90,96,92,90,https://example.com/durant.jpg,Legendary
+Stephen Curry,Golden State Warriors,Point Guard,95,92,94,78,85,80,92,94,78,86,88,98,95,93,https://example.com/curry.jpg,Legendary

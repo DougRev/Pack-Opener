@@ -1,4 +1,0 @@
-name,team,position,overallRating,shooting,dribbling,passing,onBallDefense,stealing,blocking,speed,acceleration,strength,verticalLeap,stamina,basketballIQ,intangibles,consistency,imageUrl,rarity
-Test Lebron,Lakers,Forward,97,85,90,85,80,85,80,90,85,90,85,90,95,90,95,http://localhost:3000/Images/wizard.png,Common
-Test Durant,Nets,Forward,96,90,85,88,78,80,82,88,84,85,88,85,94,92,92,http://localhost:3000/Images/dwarven-warrior.png,Uncommon
-...
