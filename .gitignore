@@ -1,9 +1,6 @@
 # Dependency directories
 node_modules/
-client/node_modules/
 
-# Production build directory
-client/build/
 # Optional npm cache directory
 .npm
 
