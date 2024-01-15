@@ -38,6 +38,7 @@ const CardDisplay = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   const openPack = async () => {
     setLoading(true);
     try {
@@ -74,6 +75,68 @@ const CardDisplay = () => {
     console.log(cards); // Log the entire cards array
   }, [cards]); // Add cards as a dependency here
     
+=======
+  console.log(selectedPack);
+  useEffect(() => {
+    const addCardsToInventory = async (selectedCards) => {
+      for (const card of selectedCards) {
+        await addCardToInventory(card); // Add each card to the inventory
+      }
+    };
+    const fetchCards = async () => {
+      try {
+        const response = await fetch('/api/cards', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          const packCards = data.cards.filter(card => card.packId === selectedPack._id);
+          const selectedCards = getSelectedCards(packCards, selectedPack.rarityDistribution);
+          setCards(selectedCards);
+          await addCardsToInventory(selectedCards);
+        } else {
+          console.error('Failed to fetch cards:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching cards:', error);
+      }
+    };
+
+    if (selectedPack) {
+      fetchCards();
+    }
+  }, [selectedPack]);
+
+  function getSelectedCards(cards, distribution) {
+    const weightedSelection = [];
+    const totalWeight = Object.values(distribution).reduce((acc, weight) => acc + weight, 0);
+  
+    while (weightedSelection.length < 5) {
+      const randomNum = Math.random() * totalWeight;
+      let weightSum = 0;
+  
+      for (const rarity of Object.keys(distribution)) {
+        weightSum += distribution[rarity];
+        if (randomNum <= weightSum) {
+          const rarityCards = cards.filter(card => card.rarity === rarity);
+          if (rarityCards.length > 0) {
+            const randomCard = rarityCards[Math.floor(Math.random() * rarityCards.length)];
+            if (!weightedSelection.includes(randomCard)) {
+              weightedSelection.push(randomCard);
+            }
+            break;
+          }
+        }
+      }
+    }
+  
+    return weightedSelection.slice(0, 5);
+  }
+  
+>>>>>>> b6ffd6f6ad46fd0fbd09fbbde3c9a1af7c305db0
   
   const handleBackToPackSelection = () => {
     navigate('/packselection');
@@ -123,7 +186,7 @@ const CardDisplay = () => {
   if (error) return <div>{error}</div>;
 
 
-  return (
+return (
     <div id="packOpening">
       <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
       {cards.length ? (
@@ -142,5 +205,6 @@ const CardDisplay = () => {
     </div>
   );
 };
+
 
 export default CardDisplay;
