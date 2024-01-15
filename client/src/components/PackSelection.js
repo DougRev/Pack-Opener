@@ -1,45 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import './PackSelection.css';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
-const PackSelection = ({ onPackSelect }) => {
-  const [packs, setPacks] = useState([]); // Initialize packs state as empty array
-  const navigate = useNavigate(); // Initialize navigate function
+const PackSelection = () => {
+  const [packs, setPacks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     const fetchPacks = async () => {
       try {
-        const response = await fetch('/packs.json');
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/packs', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch packs');
+        }
         const data = await response.json();
         setPacks(data);
       } catch (error) {
-        console.error('Error fetching packs:', error);
+        setError('Error fetching packs: ' + error.message);
+      } finally {
+        setLoading(false);
       }
     };
-  
     fetchPacks();
   }, []);
 
-const handlePackClick = (packId) => {
-  // Find the selected pack based on packId
-  const selectedPack = packs.find(pack => pack.id === packId);
-  if (selectedPack) {
-    // Navigate to CardDisplay and pass the selectedPack in the state
-    navigate('/carddisplay', { state: { selectedPack: selectedPack } });
-  }
-};
-
-
-  const handleBackToHome = () => {
-    navigate('/home'); // Navigate to the home route
+  const handlePackClick = (pack) => {
+    navigate('/carddisplay', { state: { selectedPackId: pack._id } });
   };
+  
+  const handleBackToHome = () => {
+    navigate('/home');
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div id="packSelection">
-      {packs.map((pack, index) => (
-        <div key={index} className="pack-option" onClick={() => handlePackClick(pack.id)}>
-          <img src={pack.image} alt={`Pack ${index + 1}`} />
-          <p>{pack.name}</p> {/* Display the pack name */}
+      {packs.map(pack => (
+        <div key={pack._id} className="pack-option" onClick={() => handlePackClick(pack)}>
+          <img src={pack.imageUrl || '/default-pack-image.png'} alt={pack.name} />
+          <p>{pack.name}</p>
         </div>
       ))}
       <button id="backToHomeFromPackSelection" onClick={handleBackToHome}>Back to Home</button>

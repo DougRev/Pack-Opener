@@ -25,29 +25,21 @@ router.get('/', auth, requireAuth, async (req, res) => {
 // POST add a card to user's inventory
 router.post('/add', auth, requireAuth, async (req, res) => {
   try {
-    // Find the user by ID added to req by the auth middleware
     const user = await User.findById(req.user.id);
+    const cardId = req.body.cardId; // Expecting cardId in the request body
 
-    // Create a new card without specifying the _id
-    const newCard = new Card({
-      name: req.body.name,
-      description: req.body.description,
-      imageUrl: req.body.imageUrl,
-      packId: req.body.packId // make sure this is a valid ObjectId or remove if not necessary
-    });
-
-    // Save the new card to the database
-    const savedCard = await newCard.save();
-
-    // Add the new card to the user's inventory
-    user.inventory.push(savedCard._id); // Push the new card's _id to the inventory array
-    await user.save(); // Save the user with the updated inventory
-
-    res.status(201).json(savedCard);
+    if (!user.inventory.includes(cardId)) {
+      user.inventory.push(cardId); // Add cardId to the user's inventory
+      await user.save();
+      res.json({ message: 'Card added to inventory successfully' });
+    } else {
+      res.status(400).json({ message: 'Card already in inventory' });
+    }
   } catch (error) {
     console.error('Error adding card:', error);
     res.status(500).json({ message: 'Error adding card to inventory', error: error.message });
   }
 });
+
 
 module.exports = router;

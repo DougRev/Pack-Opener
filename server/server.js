@@ -3,32 +3,47 @@ const cors = require('cors');
 const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
-const Card = require('./models/Card'); // Adjust the path as necessary to where your model is located.
-const packRoutes = require('./routes/packs'); // Adjust the path as necessary
-const cardRoutes = require('./routes/cards'); // Import the cards routes
-const templateRoutes = require('./routes/cardTemplate'); // Adjust the path as necessary
 
-app.use(express.json()); // for parsing application/json
-app.use('/Images', express.static('Images'));
+// Models
+const Card = require('./models/Card');
+const Pack = require('./models/Pack');
+const RarityDistribution = require('./models/RarityDistribution');
 
-// Enable All CORS Requests for development purpose
-app.use(cors());
+// Routes
+const packRoutes = require('./routes/packs');
+const cardRoutes = require('./routes/cards');
+const templateRoutes = require('./routes/cardTemplate');
+const adminRoutes = require('./routes/admin'); 
 const authRoutes = require('./routes/auth');
 const inventoryRoutes = require('./routes/inventory');
+
+app.use(express.json());
+app.use(cors());
+
+// Static folder for images
+app.use('/Images', express.static('Images'));
+
+// Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/inventory', inventoryRoutes);
-
-const PORT = process.env.PORT || 5000;
 app.use('/api/packs', packRoutes);
-app.use('/api/cards', cardRoutes); // Use the cards routes
+app.use('/api/cards', cardRoutes);
+app.use('/api/cardTemplate', templateRoutes);
+app.use('/api', adminRoutes); 
 
+app.use((error, req, res, next) => {
+    console.error(error.stack); // Log stack trace for the error
+    res.status(500).send('Something broke!');
+  });
+  
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGODB_URI;
 console.log("MongoDB URI:", mongoURI);
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-
-// Templates
-app.use('/api/cardTemplate', templateRoutes);

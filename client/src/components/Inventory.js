@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import './Inventory.css'; // Assume you create a CSS file for this component
+import CardModal from './CardModal';
+import Pagination from './Pagination'; // You need to create this component
+import './Inventory.css'; 
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cardsPerPage] = useState(10);
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -33,18 +38,29 @@ const Inventory = () => {
   }, []);
 
 
+  const indexOfLastCard = currentPage * cardsPerPage;
+  const indexOfFirstCard = indexOfLastCard - cardsPerPage;
+  const currentCards = inventory.slice(indexOfFirstCard, indexOfLastCard);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleCardClick = (card) => {
+    setSelectedCard(card);
+  };
+
   return (
-    <div className="inventory-container">
-      {inventory.map(card => (
-        // Make sure that each card has a unique `_id` property
-        // If your data uses a different unique identifier, use that instead
-        <div key={card._id} className="card-item"> 
-          <img src={card.imageUrl} alt={card.name} className="card-image" />
-          <h3 className="card-name">{card.name}</h3>
-          <p className="card-description">{card.description}</p>
-          {/* Add more details as needed */}
-        </div>
-      ))}
+    <div className="inventory-page">
+      <div className="inventory-container">
+        {selectedCard && (
+          <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+        )}
+        {currentCards.map((card, index) => (
+          <div key={card._id} className={`card-item rarity-${card.rarity.toLowerCase()}`} onClick={() => setSelectedCard(card)}>
+            <img src={card.imageUrl} alt={card.name} className="card-image" />
+          </div>
+        ))}
+      </div>
+      <Pagination cardsPerPage={cardsPerPage} totalCards={inventory.length} paginate={paginate} />
     </div>
   );
 };

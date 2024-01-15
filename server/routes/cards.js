@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const Card = require('../models/Card'); // Replace with your actual Card model
+const Card = require('../models/Card'); 
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
+const { applyStatModifier } = require('../utils/cardUtils'); 
+const CardTemplate = require('../models/CardTemplate');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -29,12 +31,15 @@ router.get('/', auth, async (req, res) => {
 
 
 router.post('/upload', upload.single('csv'), (req, res) => {
+  console.log(req.file); // This should log the file details
+  console.log(req.body); // This will log any other form fields
     const results = [];
     fs.createReadStream(req.file.path)
       .pipe(csvParser())
       .on('data', (data) => {
         // Convert string values to their appropriate types
         const transformedData = {
+          template: data.templateId,
           name: data.name,
           packId: data.packId,
           team: data.team,
@@ -72,22 +77,17 @@ router.post('/upload', upload.single('csv'), (req, res) => {
           // Validate and insert data into the database
           await Card.insertMany(results);
           res.json({ message: 'Cards uploaded successfully' });
-         // Delete the file after processing
-         fs.unlink(req.file.path, err => {
-          if (err) {
-            console.error('Error deleting file:', req.file.path, err);
-          } else {
-            console.log('Successfully deleted file:', req.file.path);
-          }
-        });
-      } catch (error) {
-        // Handle error...
-        // Attempt to delete the file even if there is an error
-        fs.unlink(req.file.path, err => {
-          if (err) console.error('Error deleting file:', req.file.path, err);
-        });
-      }
-    });
+        } catch (error) {
+          res.status(500).json({ message: 'Error uploading cards', error: error.message });
+        } finally {
+          // Delete the file after processing
+          fs.unlink(req.file.path, err => {
+            if (err) {
+              console.error('Error deleting file:', req.file.path, err);
+            }
+          });
+        }
+      });      
 });
   
   function parseNumberOrDefault(value, defaultValue = 0) {
@@ -97,34 +97,41 @@ router.post('/upload', upload.single('csv'), (req, res) => {
     }
     return parsed;
   }
-  
-  
+
 
 // POST endpoint to create a new card
 router.post('/', auth, async (req, res) => {
-    try {
-      const newCard = new Card(req.body);
-      const savedCard = await newCard.save();
-      res.status(201).json(savedCard);
-    } catch (error) {
-      res.status(500).json({ message: 'Error creating card', error: error.message });
-    }
-  });
-  
-  // PUT endpoint to update an existing card
-  router.put('/:id', auth, async (req, res) => {
-    try {
-      const updatedCard = await Card.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedCard) {
-        return res.status(404).json({ message: 'Card not found' });
-      }
-      res.json(updatedCard);
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating card', error: error.message });
-    }
-  });
+  try {
+    const newCard = new Card(req.body);
+    const savedCard = await newCard.save();
+    res.status(201).json(savedCard);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating card', error: error.message });
+  }
+});
 
-  // DELETE endpoint to remove all cards
+
+// PUT endpoint to update an existing card
+router.put('/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const update = req.body;
+
+  // Remove _id from the update object if it exists
+  delete update._id;
+
+  try {
+    const updatedCard = await Card.findByIdAndUpdate(id, update, { new: true, runValidators: true });
+    if (!updatedCard) {
+      return res.status(404).json({ message: 'Card not found' });
+    }
+    res.json(updatedCard);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating card', error: error.message });
+  }
+});
+
+
+// DELETE endpoint to remove all cards
 router.delete('/deleteAll', auth, async (req, res) => {
   try {
     await Card.deleteMany({});

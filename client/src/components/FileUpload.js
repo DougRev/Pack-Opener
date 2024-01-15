@@ -23,6 +23,7 @@ function FileUpload() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // 'Content-Type': 'multipart/form-data', // This line should be removed
         },
         body: formData,
       });
@@ -39,7 +40,6 @@ function FileUpload() {
     }
   };
   
-
   return (
     <div>
       <input type="file" accept=".csv" onChange={handleFileChange} />

@@ -44,8 +44,8 @@
 }
 
 .card-item {
-    padding: 10px;
     border-bottom: 1px solid #eee;
+    margin: 10px;
 }
 
 .card-item:last-child {

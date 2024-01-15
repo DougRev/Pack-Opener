@@ -1,0 +1,22 @@
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .page-item {
+    margin: 0 5px;
+  }
+  
+  .page-link {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  /* Add styles for active page number */
+  .page-item.active .page-link {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  

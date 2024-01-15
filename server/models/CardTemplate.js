@@ -15,8 +15,8 @@ const teamsEnum = [
     'Toronto Raptors', 'Utah Jazz', 'Washington Wizards'
   ];
   
-  // Enum for NBA positions
-  const positionsEnum = [
+// Enum for NBA positions
+const positionsEnum = [
     'Point Guard', 'Shooting Guard', 'Small Forward',
     'Power Forward', 'Center'
   ];
@@ -57,12 +57,11 @@ const cardTemplateSchema = new Schema({
     consistency: Number
   },
   imageUrl: { type: String, required: true },
-  rarity: { 
-    type: String, 
-    required: true,
-    enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary']
-  },
-  packId: { type: Schema.Types.ObjectId, ref: 'Pack' }
+  rarities: [{
+    level: { type: String, enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'] },
+    imageUrl: { type: String },
+    statModifier: { type: Number }
+  }],  
 });
 
 cardTemplateSchema.pre('save', function(next) {

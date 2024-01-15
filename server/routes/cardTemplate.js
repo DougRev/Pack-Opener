@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const CardTemplate = require('../models/CardTemplate'); // Assuming this is the correct path
 const auth = require('../middleware/auth');
+const multer = require('multer');
+const csvParser = require('csv-parser');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' });
 
 
 // GET endpoint to list all card templates with pagination
@@ -60,5 +64,69 @@ router.delete('/templates/:id', auth, async (req, res) => {
         res.status(500).json({ message: 'Error deleting template', error: error.message });
     }
 });
+
+router.post('/upload', upload.single('csv'), (req, res) => {
+    const results = [];
+    fs.createReadStream(req.file.path)
+      .pipe(csvParser())
+      .on('data', (data) => {
+        const rarities = [
+          { level: 'Common', imageUrl: data.CommonImageUrl || '', statModifier: Number(data.CommonStatModifier) },
+          { level: 'Uncommon', imageUrl: data.UncommonImageUrl || '', statModifier: Number(data.UncommonStatModifier) },
+          { level: 'Rare', imageUrl: data.RareImageUrl || '', statModifier: Number(data.RareStatModifier) },
+          { level: 'Epic', imageUrl: data.EpicImageUrl || '', statModifier: Number(data.EpicStatModifier) },
+          { level: 'Legendary', imageUrl: data.LegendaryImageUrl || '', statModifier: Number(data.LegendaryStatModifier) },
+        ];
+      
+        const transformedData = {
+          name: data.name,
+          team: data.team,
+          position: data.position,
+          overallRating: Number(data.overallRating),
+          offensiveSkills: {
+            shooting: Number(data.shooting),
+            dribbling: Number(data.dribbling),
+            passing: Number(data.passing),
+          },
+          defensiveSkills: {
+            onBallDefense: Number(data.onBallDefense),
+            stealing: Number(data.stealing),
+            blocking: Number(data.blocking),
+          },
+          physicalAttributes: {
+            speed: Number(data.speed),
+            acceleration: Number(data.acceleration),
+            strength: Number(data.strength),
+            verticalLeap: Number(data.verticalLeap),
+            stamina: Number(data.stamina),
+          },
+          mentalAttributes: {
+            basketballIQ: Number(data.basketballIQ),
+            intangibles: Number(data.intangibles),
+            consistency: Number(data.consistency),
+          },
+          imageUrl: data.imageUrl,
+          rarities: rarities.filter(rarity => rarity.statModifier),
+        };
+        results.push(transformedData);
+      })
+      .on('end', async () => {
+        try {
+          // Insert the card templates into the database
+          await CardTemplate.insertMany(results);
+          res.json({ message: 'Card templates uploaded successfully' });
+          // Delete the file after processing
+          fs.unlink(req.file.path, err => {
+            if (err) console.error('Error deleting file:', req.file.path, err);
+          });
+        } catch (error) {
+          res.status(500).json({ message: 'Error uploading card templates', error: error.message });
+          fs.unlink(req.file.path, err => {
+            if (err) console.error('Error deleting file:', req.file.path, err);
+          });
+        }
+      });
+});
+
 
 module.exports = router;

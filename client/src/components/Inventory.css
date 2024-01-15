@@ -1,39 +1,62 @@
 .inventory-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 20px;
-  }
-  
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 20px;
+}
+
+.card-item {
+  border: 5px solid #ddd;
+  border-radius: 10px;
+  width: calc(100% / 5 - 40px); /* 5 cards per row, adjust as needed */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer; /* Indicate the cards are clickable */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.card-content {
+  padding: 10px;
+}
+
+.card-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.card-detail {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Rarity-based styles */
+.card-item.rarity-common { border-color: #aaa; }
+.card-item.rarity-uncommon { border-color: #46d246; }
+.card-item.rarity-rare { border-color: #2e6eb6; }
+.card-item.rarity-epic { border-color: #a335ee; }
+.card-item.rarity-legendary { border-color: #ff8000; }
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
   .card-item {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    margin: 10px;
-    padding: 15px;
-    width: 200px; /* Adjust based on your preference */
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
+    width: calc(100% / 3 - 40px); /* 3 cards per row on smaller screens */
   }
-  
-  .card-item:hover {
-    transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+  .card-item {
+    width: calc(100% / 2 - 30px); /* 2 cards per row on mobile screens */
   }
-  
-  .card-image {
-    width: 100%;
-    height: auto;
-    border-radius: 5px;
-  }
-  
-  .card-name {
-    font-size: 18px;
-    font-weight: bold;
-    margin: 10px 0;
-  }
-  
-  .card-description {
-    font-size: 14px;
-    color: #555;
-  }
-  
+}

@@ -14,7 +14,7 @@ const CardModal = ({ card, onClose }) => {
           <h2>{card.name}</h2>
           <p>Team: {card.team}</p>
           <p>Position: {card.position}</p>
-          <p>Rarity: {card.rarity}</p>
+          <p>Rarity: {card.rarity}</p> {/* Adjusted to directly show card rarity */}
           <p>Overall Rating: {card.overallRating}</p>
           {/* Display skills and attributes */}
           <div className="card-stats">
@@ -33,50 +33,48 @@ const CardModal = ({ card, onClose }) => {
 const CardDisplay = () => {
   const [cards, setCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedPack = location.state?.selectedPack; // Assuming selectedPack is passed via route state
 
+  const openPack = async () => {
+    setLoading(true);
+    try {
+      const packId = location.state?.selectedPackId;
+      if (!packId) {
+        throw new Error('No pack selected');
+      }
+  
+      const response = await fetch(`/api/packs/open/${packId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      const data = await response.json();
+      console.log('Server response:', data);  // Log the server response here
+      if (!response.ok) throw new Error(data.message || 'Failed to open pack');
+      setCards(currentCards => [...currentCards, ...data.cards]);
+    } catch (error) {
+      console.error('Error opening pack:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    openPack(); // Simulate opening a pack when the component mounts
+  }, []);
   
   useEffect(() => {
-    const addCardsToInventory = async (selectedCards) => {
-      for (const card of selectedCards) {
-        await addCardToInventory(card); // Add each card to the inventory
-      }
-    };
-
-    const fetchCards = async () => {
-      try {
-        const response = await fetch('/api/cards', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        const data = await response.json();
-        console.log(data); // Log the data to see what's actually returned
+    console.log(`Number of cards received: ${cards.length}`);
+    console.log(cards); // Log the entire cards array
+  }, [cards]); // Add cards as a dependency here
     
-        if (response.ok) {
-          // Assuming data is expected to be in the format { cards: [...cardsArray] }
-          if (Array.isArray(data.cards)) {
-            const packCards = data.cards.filter(card => card.packId === selectedPack._id);
-            // rest of your logic...
-          } else {
-            console.error('Expected an array of cards, but received:', data);
-          }
-        } else {
-          throw new Error(data.message || 'Failed to fetch cards.');
-        }
-      } catch (error) {
-        console.error('Error fetching cards:', error);
-      }
-    };
-    
-
-  if (selectedPack) {
-      fetchCards();
-    }
-  }, [selectedPack]);
-
+  
   const handleBackToPackSelection = () => {
     navigate('/packselection');
   };
@@ -84,13 +82,14 @@ const CardDisplay = () => {
   const addCardToInventory = async (card) => {
     try {
       const token = localStorage.getItem('token') || ''; // Retrieve the stored token
+      const cardId = card._id; // Extract the cardId from the card object
       const response = await fetch('/api/inventory/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` // Include the token in the Authorization header
         },
-        body: JSON.stringify(card),
+        body: JSON.stringify({ cardId }), // Use the extracted cardId here
       });
   
       const responseData = await response.json(); // Parse JSON response  
@@ -108,28 +107,31 @@ const CardDisplay = () => {
   };
   
   
-
-  const toggleFlip = (index) => {
-    // Just toggle the flip state, inventory add is handled in fetchCards
-    setCards(cards.map((card, cardIndex) => {
-      if (cardIndex === index) {
+  const toggleFlip = (cardId) => {
+    setSelectedCard(null); // Reset the selected card
+    const flippedCards = cards.map(card => {
+      if (card._id === cardId) {
         return { ...card, flipped: !card.flipped };
       }
       return card;
-    }));
-    if (!cards[index].flipped) {
-      setSelectedCard(cards[index]); // Show modal with card details
-    }
+    });
+    setCards(flippedCards);
   };
+  
+
+  if (loading) return <div>Loading cards...</div>;
+  if (error) return <div>{error}</div>;
+
 
   return (
     <div id="packOpening">
       <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
-      {cards.length > 0 ? (
-        cards.map((card, index) => (
-          <div key={index} className="card" onClick={() => toggleFlip(index)}>
-            <img src={card.flipped ? card.imageUrl : "/images/CardBack.png"} alt={card.name} />
-          </div>
+      {cards.length ? (
+        cards.map(card => (
+        <div key={card._id} className="card" onClick={() => toggleFlip(card._id)}>
+          <img src={card.flipped ? card.imageUrl : "/images/CardBack.png"} alt={card.name || 'Card'} />
+        </div>
+
         ))
       ) : (
         <p>No cards available for this pack.</p>

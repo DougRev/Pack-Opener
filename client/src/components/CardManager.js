@@ -1,12 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import './CardManager.css';
 
+
+const initialCardState = {
+  name: '',
+  team: '',
+  position: '',
+  overallRating: 0,
+  offensiveSkills: {
+    shooting: 0,
+    dribbling: 0,
+    passing: 0
+  },
+  defensiveSkills: {
+    onBallDefense: 0,
+    stealing: 0,
+    blocking: 0
+  },
+  physicalAttributes: {
+    speed: 0,
+    acceleration: 0,
+    strength: 0,
+    verticalLeap: 0,
+    stamina: 0
+  },
+  mentalAttributes: {
+    basketballIQ: 0,
+    intangibles: 0,
+    consistency: 0
+  },
+  imageUrl: '',
+  rarity: 'Common' // Default to 'Common'
+};
 const CardManager = () => {
   const [cards, setCards] = useState([]);
-  const [editingCard, setEditingCard] = useState(null); // Card being edited
+  const [editingCard, setEditingCard] = useState(null); 
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage] = useState(5); // or whatever limit you choose
   const [totalPages, setTotalPages] = useState(0);
+  const [cardTemplates, setCardTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [cardFormData, setCardFormData] = useState({
     name: '',
     team: '',
@@ -37,6 +70,7 @@ const CardManager = () => {
     imageUrl: '',
     rarity: 'Common' // Default to 'Common'
   });
+
   const teams = [
     'Atlanta Hawks', 'Boston Celtics', 'Brooklyn Nets',
     'Charlotte Hornets', 'Chicago Bulls', 'Cleveland Cavaliers',
@@ -54,6 +88,7 @@ const CardManager = () => {
     'Power Forward', 'Center'  ];
 
   useEffect(() => {
+    fetchCardTemplates();
     fetchCards();
   }, [currentPage]);
   
@@ -80,31 +115,35 @@ const CardManager = () => {
     }
   };
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    // Check if this is a nested field, e.g., offensiveSkills.shooting
-    const nameParts = name.split('.');
-    if (nameParts.length === 2) {
-      // Nested fields for skills and attributes
-      const [category, field] = nameParts;
-      setCardFormData(prevState => ({
-        ...prevState,
-        [category]: {
-          ...prevState[category],
-          [field]: Number(value),
+  const fetchCardTemplates = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/cardTemplate/templates', { // Corrected endpoint
+        headers: {
+          'Authorization': `Bearer ${token}`,
         },
-      }));
-    } else {
-      // Not nested, just update the root level state
-      setCardFormData(prevState => ({
-        ...prevState,
-        [name]: value,
-      }));
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCardTemplates(data.templates); // Assuming the response has a 'templates' field
+      } else {
+        throw new Error(data.message || 'Failed to fetch card templates.');
+      }
+    } catch (error) {
+      console.error('Error fetching card templates:', error);
+      // Handle error, e.g., by setting an error state or displaying a notification
     }
   };
-      
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setCardFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
   const validateCardData = () => {
-    // Example validation: check if the name is not empty and the overallRating is within a range
     if (!cardFormData.name.trim()) {
       alert('Name is required.');
       return false;
@@ -113,43 +152,83 @@ const CardManager = () => {
       alert('Overall rating must be between 0 and 100.');
       return false;
     }
-    // Add any other validation rules here
-    return true; // If all validations pass, return true
+    return true;
+  };
+
+  const handleTemplateChange = (e) => {
+    const selectedId = e.target.value;
+    setSelectedTemplateId(selectedId);
+    const selectedTemplate = cardTemplates.find(t => t._id === selectedId);
+
+    if (selectedTemplate) {
+      const updatedCardFormData = {
+        ...initialCardState,
+        ...selectedTemplate,
+        rarity: cardFormData.rarity,
+      };
+      setCardFormData(updatedCardFormData);
+    } else {
+      alert('Selected template not found. Please check the templates list.');
+    }
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!validateCardData()) {
-      // If validation fails, stop the form submission
+      // If validation fails, do not submit
       return;
     }
 
+    const cardDataToSubmit = {
+      ...cardFormData,
+      template: selectedTemplateId,
+    };
+  
+    console.log('Submitting card data:', cardDataToSubmit);
+  
     const method = editingCard ? 'PUT' : 'POST';
     const url = editingCard ? `/api/cards/${editingCard._id}` : '/api/cards';
-
+    const token = localStorage.getItem('token');
+  
     try {
       const response = await fetch(url, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cardFormData),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(cardDataToSubmit),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
+        // Fetch the updated list of cards and reset the form
         fetchCards();
         setEditingCard(null);
-        setCardFormData({ name: '', description: '', imageUrl: '' });
+        setCardFormData(initialCardState);
+        alert('Card submitted successfully.');
       } else {
-        throw new Error(data.message);
+        throw new Error(data.message || 'An error occurred while submitting the card.');
       }
     } catch (error) {
-      console.error('Error submitting card:', error.message);
+      console.error('Error submitting card:', error);
+      alert(`Error submitting card: ${error.message}`);
     }
-  };
+};
+
+  
 
   const handleEdit = (card) => {
     setEditingCard(card);
-    setCardFormData({ name: card.name, description: card.description, imageUrl: card.imageUrl });
+    setCardFormData({
+      name: card.name,
+      team: card.team,
+      position: card.position,
+      overallRating: card.overallRating,
+      offensiveSkills: card.offensiveSkills || initialCardState.offensiveSkills,
+      defensiveSkills: card.defensiveSkills || initialCardState.defensiveSkills,
+      physicalAttributes: card.physicalAttributes || initialCardState.physicalAttributes,
+      mentalAttributes: card.mentalAttributes || initialCardState.mentalAttributes,
+      imageUrl: card.imageUrl,
+      rarity: card.rarity,
+    });
   };
 
   const handleDelete = async (id) => {
@@ -200,6 +279,15 @@ const CardManager = () => {
       <h2>Manage Cards</h2>
       <button onClick={handleDeleteAll}>Delete All Cards</button>
       <form onSubmit={handleFormSubmit} className="card-manager-form">
+      <label>
+          Card Template:
+          <select value={selectedTemplateId} onChange={handleTemplateChange} required>
+            <option value="">Select a template</option>
+            {cardTemplates.map(template => (
+              <option key={template._id} value={template._id}>{template.name}</option>
+            ))}
+          </select>
+        </label>
         <label>
           Name:
           <input type="text" name="name" value={cardFormData.name} onChange={handleFormChange} required />
@@ -310,6 +398,22 @@ const CardManager = () => {
               <h3>{card.name}</h3>
               <p>{card.team} - {card.position}</p>
               <p>Rarity: {card.rarity}</p>
+              {/* Use optional chaining when accessing nested properties */}
+              <p>Shooting: {card.offensiveSkills?.shooting || 'N/A'}</p>
+              <p>Dribbling: {card.offensiveSkills?.dribbling || 'N/A'}</p>
+              <p>Passing: {card.offensiveSkills?.passing || 'N/A'}</p>
+              <p>On-Ball Defense: {card.defensiveSkills?.onBallDefense || 'N/A'}</p>
+              <p>Stealing: {card.defensiveSkills?.stealing || 'N/A'}</p>
+              <p>Blocking: {card.defensiveSkills?.blocking || 'N/A'}</p>
+              <p>Speed: {card.physicalAttributes?.speed || 'N/A'}</p>
+              <p>Acceleration: {card.physicalAttributes?.acceleration || 'N/A'}</p>
+              <p>Strength: {card.physicalAttributes?.strength || 'N/A'}</p>
+              <p>Vertical Leap: {card.physicalAttributes?.verticalLeap || 'N/A'}</p>
+              <p>Stamina: {card.physicalAttributes?.stamina || 'N/A'}</p>
+              <p>Basketball IQ: {card.mentalAttributes?.basketballIQ || 'N/A'}</p>
+              <p>Intangibles: {card.mentalAttributes?.intangibles || 'N/A'}</p>
+              <p>Consistency: {card.mentalAttributes?.consistency || 'N/A'}</p>
+
               <div className="card-item-buttons">
                 <button onClick={() => handleEdit(card)}>Edit</button>
                 <button onClick={() => handleDelete(card._id)}>Delete</button>

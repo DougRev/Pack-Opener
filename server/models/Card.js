@@ -3,8 +3,12 @@ const Schema = mongoose.Schema;
 
 const cardSchema = new Schema({
   template: { type: Schema.Types.ObjectId, ref: 'CardTemplate', required: true },
-  ownerId: { type: Schema.Types.ObjectId, ref: 'User' }, // Assuming you have a User model
-  overallRating: { type: Number, required: true },
+  ownerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  name: { type: String, required: true },
+  team: { type: String, required: true },
+  position: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  rarity: { type: String, enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'], required: true },
   offensiveSkills: {
     shooting: Number,
     dribbling: Number,
@@ -27,25 +31,6 @@ const cardSchema = new Schema({
     intangibles: Number,
     consistency: Number
   },
-  // You can include additional user-specific fields here as needed
-});
-
-// If you plan to calculate the overallRating on the fly, you can use a method or virtual
-
-cardSchema.pre('save', function(next) {
-  if (this.isNew || this.isModified('offensiveSkills') || this.isModified('defensiveSkills') || this.isModified('physicalAttributes') || this.isModified('mentalAttributes')) {
-    // Calculate overallRating based on skills and attributes here, similar to what you have in cardTemplateSchema
-    const statsSum = Object.values(this.offensiveSkills).reduce((acc, cur) => acc + cur, 0) +
-                     Object.values(this.defensiveSkills).reduce((acc, cur) => acc + cur, 0) +
-                     Object.values(this.physicalAttributes).reduce((acc, cur) => acc + cur, 0) +
-                     Object.values(this.mentalAttributes).reduce((acc, cur) => acc + cur, 0);
-    const numberOfStats = Object.keys(this.offensiveSkills).length +
-                          Object.keys(this.defensiveSkills).length +
-                          Object.keys(this.physicalAttributes).length +
-                          Object.keys(this.mentalAttributes).length;
-    this.overallRating = Math.round(statsSum / numberOfStats);
-  }
-  next();
 });
 
 const Card = mongoose.model('Card', cardSchema);
