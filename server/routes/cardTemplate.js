@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const fs = require('fs');
-const CardTemplate = require('../models/CardTemplate'); // Assuming this is the correct path
+const CardTemplate = require('../models/CardTemplate'); 
 const auth = require('../middleware/auth');
 const csvParser = require('csv-parser');
 const upload = multer({ dest: 'uploads/' });
+const Pack = require('../models/Pack'); 
 
 // GET endpoint to list all card templates with pagination
 router.get('/templates', auth, async (req, res) => {
@@ -65,13 +66,33 @@ router.delete('/templates/:id', auth, async (req, res) => {
 });
 
 router.post('/upload', upload.single('csv'), (req, res) => {
-  console.log('Received file:', req.file); // Log the received file details
+  console.log('Received file:', req.file);
 
   const results = [];
-  fs.createReadStream(req.file.path)
-    .pipe(csvParser())
-    .on('data', (data) => {
-      try {
+  const errors = [];
+
+  new Promise((resolve, reject) => {
+    fs.createReadStream(req.file.path)
+      .pipe(csvParser())
+      .on('data', async (data) => {
+        try {
+        // Trim field names and values
+        const trimmedData = Object.keys(data).reduce((acc, key) => {
+          acc[key.trim()] = data[key].trim();
+          return acc;
+        }, {});
+
+        // Data transformation and validation
+        if (!trimmedData.packId || !trimmedData.name || isNaN(Number(trimmedData.overallRating))) {
+          throw new Error('Missing required fields or invalid data format');
+        }
+
+        // Check if pack exists
+        const packExists = await Pack.findById(trimmedData.packId);
+        if (!packExists) {
+          throw new Error(`Pack with ID ${trimmedData.packId} does not exist`);
+        }
+
         // Log data being processed
         console.log('Processing data:', data);
         const rarities = [
@@ -113,28 +134,38 @@ router.post('/upload', upload.single('csv'), (req, res) => {
           imageUrl: data.imageUrl,
           rarities: rarities.filter(rarity => rarity.statModifier),
         };
+        console.log('Processed data:', trimmedData);
+        console.log('Adding to results:', transformedData); 
         results.push(transformedData);
         } catch (error) {
           console.error('Error processing CSV row:', error, 'Data:', data);
-          // Optionally, you can decide to stop processing and return an error response here
+          errors.push({ error: error.message, row: data });
         }
       })
-      .on('end', async () => {
-        try {
-          // Insert the card templates into the database
-          await CardTemplate.insertMany(results);
-          console.log('Card templates uploaded successfully');
-          res.json({ message: 'Card templates uploaded successfully' });
-        } catch (error) {
-          console.error('Error uploading card templates:', error);
-          res.status(500).json({ message: 'Error uploading card templates', error: error.message });
-        } finally {
-          // Delete the file after processing
-          fs.unlink(req.file.path, err => {
-            if (err) console.error('Error deleting file:', req.file.path, err);
-          });
+      .on('end', () => {
+        if (errors.length > 0) {
+          reject('Errors occurred while processing some rows');
+        } else {
+          resolve();
         }
       });
+  })
+  .then(async () => {
+    console.log('Number of templates to be inserted:', results.length);
+    const insertResult = await CardTemplate.insertMany(results);
+    console.log('Insertion result:', insertResult);
+    res.json({ message: 'Card templates uploaded successfully' });
+  })
+  .catch((error) => {
+    console.error('Error uploading card templates:', error);
+    res.status(500).json({ message: 'Error uploading card templates', error: error, rowErrors: errors });
+  })
+  .finally(() => {
+    // Delete the file after processing
+    fs.unlink(req.file.path, err => {
+      if (err) console.error('Error deleting file:', req.file.path, err);
+    });
+  });
 });
 
 module.exports = router;
