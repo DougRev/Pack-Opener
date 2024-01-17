@@ -1,15 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const csvParser = require('csv-parser');
 const fs = require('fs');
 const CardTemplate = require('../models/CardTemplate'); // Assuming this is the correct path
 const auth = require('../middleware/auth');
-const multer = require('multer');
 const csvParser = require('csv-parser');
-const fs = require('fs');
-const upload = multer({ dest: 'uploads/' });
-
 const upload = multer({ dest: 'uploads/' });
 
 // GET endpoint to list all card templates with pagination
@@ -69,12 +64,16 @@ router.delete('/templates/:id', auth, async (req, res) => {
     }
 });
 
-<<<<<<< HEAD
 router.post('/upload', upload.single('csv'), (req, res) => {
-    const results = [];
-    fs.createReadStream(req.file.path)
-      .pipe(csvParser())
-      .on('data', (data) => {
+  console.log('Received file:', req.file); // Log the received file details
+
+  const results = [];
+  fs.createReadStream(req.file.path)
+    .pipe(csvParser())
+    .on('data', (data) => {
+      try {
+        // Log data being processed
+        console.log('Processing data:', data);
         const rarities = [
           { level: 'Common', imageUrl: data.CommonImageUrl || '', statModifier: Number(data.CommonStatModifier) },
           { level: 'Uncommon', imageUrl: data.UncommonImageUrl || '', statModifier: Number(data.UncommonStatModifier) },
@@ -84,6 +83,7 @@ router.post('/upload', upload.single('csv'), (req, res) => {
         ];
       
         const transformedData = {
+          packId: data.packId,
           name: data.name,
           team: data.team,
           position: data.position,
@@ -114,18 +114,22 @@ router.post('/upload', upload.single('csv'), (req, res) => {
           rarities: rarities.filter(rarity => rarity.statModifier),
         };
         results.push(transformedData);
+        } catch (error) {
+          console.error('Error processing CSV row:', error, 'Data:', data);
+          // Optionally, you can decide to stop processing and return an error response here
+        }
       })
       .on('end', async () => {
         try {
           // Insert the card templates into the database
           await CardTemplate.insertMany(results);
+          console.log('Card templates uploaded successfully');
           res.json({ message: 'Card templates uploaded successfully' });
-          // Delete the file after processing
-          fs.unlink(req.file.path, err => {
-            if (err) console.error('Error deleting file:', req.file.path, err);
-          });
         } catch (error) {
+          console.error('Error uploading card templates:', error);
           res.status(500).json({ message: 'Error uploading card templates', error: error.message });
+        } finally {
+          // Delete the file after processing
           fs.unlink(req.file.path, err => {
             if (err) console.error('Error deleting file:', req.file.path, err);
           });
@@ -133,56 +137,4 @@ router.post('/upload', upload.single('csv'), (req, res) => {
       });
 });
 
-
-=======
-router.post('/upload', upload.single('file'), (req, res) => {
-    const results = [];
-    fs.createReadStream(req.file.path)
-        .pipe(csvParser())
-        .on('data', (data) => {
-            // Map the flat CSV structure to the nested schema structure
-            const templateData = {
-                name: data.name,
-                team: data.team,
-                position: data.position,
-                overallRating: undefined, // This will be calculated pre-save
-                offensiveSkills: {
-                    shooting: data.shooting,
-                    dribbling: data.dribbling,
-                    passing: data.passing
-                },
-                defensiveSkills: {
-                    onBallDefense: data.onBallDefense,
-                    stealing: data.stealing,
-                    blocking: data.blocking
-                },
-                physicalAttributes: {
-                    speed: data.speed,
-                    acceleration: data.acceleration,
-                    strength: data.strength,
-                    verticalLeap: data.verticalLeap,
-                    stamina: data.stamina
-                },
-                mentalAttributes: {
-                    basketballIQ: data.basketballIQ,
-                    intangibles: data.intangibles,
-                    consistency: data.consistency
-                },
-                imageUrl: data.imageUrl,
-                rarity: data.rarity
-            };
-            results.push(templateData);
-        })
-        .on('end', () => {
-            // Validate and insert data into the database
-            results.forEach(templateData => {
-                const newTemplate = new CardTemplate(templateData);
-                newTemplate.save(); // Add error handling and validation
-            });
-            res.json({ message: 'Card templates uploaded successfully' });
-            res.send('Card templates uploaded successfully');
-        });
-});
-
->>>>>>> b6ffd6f6ad46fd0fbd09fbbde3c9a1af7c305db0
 module.exports = router;

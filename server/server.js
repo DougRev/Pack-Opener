@@ -10,6 +10,7 @@ const Pack = require('./models/Pack');
 const RarityDistribution = require('./models/RarityDistribution');
 
 // Routes
+const userRoutes = require('./routes/user');
 const packRoutes = require('./routes/packs');
 const cardRoutes = require('./routes/cards');
 const templateRoutes = require('./routes/cardTemplate');
@@ -30,6 +31,7 @@ app.use('/api/packs', packRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/cardTemplate', templateRoutes);
 app.use('/api', adminRoutes); 
+app.use('/api/user', userRoutes);
 
 app.use((error, req, res, next) => {
     console.error(error.stack); // Log stack trace for the error

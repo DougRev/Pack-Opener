@@ -9,6 +9,9 @@ const cardSchema = new Schema({
   position: { type: String, required: true },
   imageUrl: { type: String, required: true },
   rarity: { type: String, enum: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'], required: true },
+  isListed: { type: Boolean, default: false },
+  price: { type: Number, default: 0 },
+  listedDate: { type: Date },
   offensiveSkills: {
     shooting: Number,
     dribbling: Number,

@@ -4,7 +4,6 @@ const Schema = mongoose.Schema;
 const packSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-<<<<<<< HEAD
   imageUrl: { type: String, required: true, },
   rarityDistribution: {
     common: { type: Number, default: 70 }, // percentage for common cards
@@ -19,18 +18,4 @@ const packSchema = new Schema({
 const Pack = mongoose.model('Pack', packSchema);
 module.exports = Pack;
 
-=======
-  rarityDistribution: {
-    Common: { type: Number, required: true },
-    Uncommon: { type: Number, required: true },
-    Rare: { type: Number, required: true },
-    Epic: { type: Number, required: true },
-    Legendary: { type: Number, required: true },
-  },
-  // other fields as necessary
-});
-  
-  const Pack = mongoose.model('Pack', packSchema);
-  module.exports = Pack;
->>>>>>> b6ffd6f6ad46fd0fbd09fbbde3c9a1af7c305db0
   

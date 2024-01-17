@@ -157,9 +157,126 @@ router.delete('/deleteAll', auth, async (req, res) => {
     }
   });
 
+// In server/routes/cards.js
+router.post('/list/:cardId', auth, async (req, res) => {
+  const { cardId } = req.params;
+  const { price } = req.body;
 
+  try {
+    const card = await Card.findById(cardId);
+    if (!card) {
+      return res.status(404).json({ message: 'Card not found' });
+    }
 
+    card.isListed = true;
+    card.price = price;
+    card.listedDate = new Date();
+    await card.save();
 
+    res.status(200).json({ message: 'Card listed for sale', card });
+  } catch (error) {
+    res.status(500).json({ message: 'Error listing card', error: error.message });
+  }
+});
 
+// In server/routes/cards.js
+router.post('/buy/:cardId', auth, async (req, res) => {
+  const { cardId } = req.params;
+  const buyerId = req.user.id;
+
+  try {
+    const card = await Card.findById(cardId);
+    if (!card || !card.isListed) {
+      return res.status(404).json({ message: 'Card not available for sale' });
+    }
+
+    const buyer = await User.findById(buyerId);
+    if (buyer.currency < card.price) {
+      return res.status(400).json({ message: 'Insufficient currency' });
+    }
+
+    const seller = await User.findById(card.ownerId);
+    if (seller) {
+      seller.inventory = seller.inventory.filter(item => item.toString() !== cardId); // Remove the card from the seller's inventory
+      await seller.save();
+    }
+
+    // Process transaction
+    buyer.currency -= card.price;
+    buyer.inventory.push(cardId);
+    card.isListed= false;
+    card.ownerId = buyerId;
+
+    await buyer.save();
+    await card.save();
+ 
+    res.status(200).json({ message: 'Card purchased successfully', card });
+  } catch (error) {
+    res.status(500).json({ message: 'Error processing purchase', error: error.message });
+  }
+
+});
+
+// GET endpoint to list cards that are for sale
+router.get('/sale', auth, async (req, res) => {
+  try {
+    const cardsForSale = await Card.find({ isListed: true });
+    res.json({ cards: cardsForSale });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching cards for sale', error: error.message });
+  }
+});
+
+router.post('/quicksell/:cardId', auth, async (req, res) => {
+  const { cardId } = req.params;
+  const userId = req.user.id; // assuming you have user's ID from auth middleware
+
+  try {
+    const session = await mongoose.startSession(); // Start a session for transaction
+    session.startTransaction(); // Start the transaction
+
+    const card = await Card.findById(cardId).session(session);
+    if (!card) {
+      await session.abortTransaction(); // Abort transaction if card not found
+      session.endSession(); // End the session
+      return res.status(404).json({ message:'Card not found' });
+    }
+    // Ensure the user owns the card
+    if (!card.ownerId.equals(userId)) { // Use .equals for ObjectId comparison
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ message: 'You do not own this card' });
+    }
+
+    // Define the currency value for each rarity
+    const rarityValues = {
+      common: 10,
+      uncommon: 20,
+      rare: 50,
+      epic: 100,
+      legendary: 200
+    };
+    const quickSellValue = rarityValues[card.rarity.toLowerCase()] || 0; // Make sure to call toLowerCase() if your enum values are capitalized
+
+    // Update the user's currency
+    const user = await User.findById(userId).session(session);
+    user.currency += quickSellValue;
+    user.inventory.pull(cardId); // Remove the card from the user's inventory
+    await user.save({ session });
+
+    // Delete the card
+    await card.remove({ session });
+
+    await session.commitTransaction(); // Commit the transaction
+    session.endSession(); // End the session
+
+    res.status(200).json({ message: `Card sold for ${quickSellValue} currency`, newCurrency: user.currency });
+    } catch (error) {
+      console.error('Error processing quick sell', error);
+      res.status(500).json({ message: 'Error processing quick sell', error: error.message });
+  }
+  
+});
 
 module.exports = router;
+

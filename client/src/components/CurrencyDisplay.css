@@ -1,0 +1,10 @@
+.currency-display {
+    display: flex;
+    align-items: center;
+    color: #ffd700; /* Gold color */
+    font-weight: bold;
+}
+
+.currency-display span {
+    margin-left: 5px;
+}

@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import CurrencyDisplay from './CurrencyDisplay'; 
+
 import './Navigation.css';
 
 const Navigation = ({ isAdmin, loggedIn, username, onLogout }) => {
@@ -20,6 +22,7 @@ const Navigation = ({ isAdmin, loggedIn, username, onLogout }) => {
             {isAdmin && <li onClick={() => navigateTo('/admin')}>Admin Dashboard</li>}
           </ul>
           <div className="nav-right">
+            <CurrencyDisplay /> {/* Display currency for logged-in users */}
             <span>Welcome, {username}</span>
             <li onClick={onLogout}>Logout</li>
           </div>

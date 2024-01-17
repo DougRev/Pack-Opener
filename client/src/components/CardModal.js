@@ -3,7 +3,7 @@ import './CardModal.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
-const CardModal = ({ card, onClose }) => {
+const CardModal = ({ card, onClose, onQuickSell }) => {
   if (!card) return null;
 
   // Create a variable for card attributes, defaulting to an empty object if not present
@@ -31,6 +31,14 @@ const CardModal = ({ card, onClose }) => {
       { label: 'Consistency', value: card.mentalAttributes.consistency },
     ];
   };
+
+
+    const handleQuickSell = () => {
+        if (card && onQuickSell) {
+            onQuickSell(card._id);
+        }
+    };
+  
   
   const cardStats = createCardStats(card);
 
@@ -68,6 +76,7 @@ const CardModal = ({ card, onClose }) => {
               <button className="action-button">Add to Wishlist</button>
               <button className="action-button">Trade</button>
               <button className="action-button">Sell</button>
+              <button className='action-button' onClick={() => handleQuickSell(card._id)}>Quick Sell</button>
             </div>
           </div>
         </div>

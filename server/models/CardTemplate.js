@@ -22,6 +22,7 @@ const positionsEnum = [
   ];
 
 const cardTemplateSchema = new Schema({
+  packId: {type: String, required: false},
   name: { type: String, required: true },
   team: { 
     type: String, 

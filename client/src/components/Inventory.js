@@ -45,14 +45,42 @@ const Inventory = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleCardClick = (card) => {
+    console.log('Selected Card:', card); // Add this line to debug the selected card object
     setSelectedCard(card);
   };
+
+  const handleQuickSell = async (cardId) => {
+    // This function must be marked as async to use await inside it
+    try {
+      const token = localStorage.getItem('token') || '';
+      const response = await fetch(`/api/cards/quicksell/${cardId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        // Handle successful quicksell
+        alert('Card sold successfully');
+        // Update inventory state here if necessary
+      } else {
+        alert(data.message || 'Error selling card');
+      }
+    } catch (error) {
+      console.error('Error during quicksell:', error);
+      alert('Network or server error');
+    }
+  };
+  
 
   return (
     <div className="inventory-page">
       <div className="inventory-container">
         {selectedCard && (
-          <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+          <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} onQuickSell={handleQuickSell} />
         )}
         {currentCards.map((card, index) => (
           <div key={card._id} className={`card-item rarity-${card.rarity.toLowerCase()}`} onClick={() => setSelectedCard(card)}>

@@ -22,7 +22,7 @@ function FileUpload() {
       return;
     }
     const formData = new FormData();
-    formData.append('file', file); // Make sure this matches the field name expected by Multer on the backend
+    formData.append('csv', file); // Ensure this matches the field name expected by Multer
 
     const token = localStorage.getItem('token'); // or however you store your token
 
@@ -58,11 +58,7 @@ function FileUpload() {
       alert('Upload failed');
     }
   };
-<<<<<<< HEAD
   
-=======
-
->>>>>>> b6ffd6f6ad46fd0fbd09fbbde3c9a1af7c305db0
   return (
     <div>
       <input type="file" accept=".csv" onChange={handleFileChange} />

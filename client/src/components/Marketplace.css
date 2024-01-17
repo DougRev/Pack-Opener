@@ -1,0 +1,55 @@
+.marketplace {
+    padding: 20px;
+    text-align: center;
+}
+
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    width: 200px;
+    text-align: center;
+}
+
+.card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 
+    4px;
+}
+
+.card-details {
+margin-top: 10px;
+}
+
+.card-details h3 {
+margin: 0;
+font-size: 1.2em;
+color: #333;
+}
+
+.card-details p {
+margin: 5px 0;
+color: #666;
+}
+
+button {
+background-color: #4CAF50; /* Green */
+border: none;
+color: white;
+padding: 10px 20px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 4px 2px;
+cursor: pointer;
+border-radius: 4px;
+}
